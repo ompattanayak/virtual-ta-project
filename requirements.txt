@@ -1,5 +1,6 @@
 fastapi
 uvicorn
-pytesseract
-pillow
+pydantic
+python-multipart
+Pillow
 openai
