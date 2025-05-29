@@ -1,27 +1,31 @@
-# main.py
 from fastapi import FastAPI, Request
 from pydantic import BaseModel
+from typing import Optional
 import base64
-import io
+from model import search_data
 from PIL import Image
-import pytesseract
-from model import generate_answer
+import io
 
 app = FastAPI()
 
 class Query(BaseModel):
     question: str
-    image: str = None
+    image: Optional[str] = None
 
 @app.post("/api/")
-async def answer_question(data: Query):
-    question = data.question
+async def virtual_ta(query: Query):
+    # Optional image decoding
+    if query.image:
+        try:
+            image_bytes = base64.b64decode(query.image)
+            img = Image.open(io.BytesIO(image_bytes))
+            # You can apply OCR or image-to-text here if needed
+        except Exception as e:
+            pass  # Just skip image processing for now
 
-    if data.image:
-        image_data = base64.b64decode(data.image)
-        image = Image.open(io.BytesIO(image_data))
-        extracted_text = pytesseract.image_to_string(image)
-        question += " " + extracted_text
+    answer, links = search_data(query.question)
 
-    answer, links = generate_answer(question)
-    return {"answer": answer, "links": links}
+    return {
+        "answer": answer,
+        "links": links
+    }
